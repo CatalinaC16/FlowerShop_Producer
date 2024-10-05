@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Review</title>
+    <link th:href="@{/styles/cssandjs/create.css}" rel="stylesheet"/>
+</head>
+<body>
+<div class="container">
+    <h2>Hey, <span id="user" th:text="${user.getName()}"></span></h2>
+    <h2>Creaza un review</h2>
+    <form id="reviewForm">
+        <div class="form-group">
+            <label for="text">Review Text:</label>
+            <textarea id="text" name="text" minlength="1" maxlength="100" title="Scrie intre 1 si 100 caractere"
+                      required></textarea>
+        </div>
+
+        <div class="form-group">
+            <label for="rating">Rating:</label>
+            <input type="number" id="rating" name="rating" min="1" max="10" title="Da o nota intre 1 si 10" required>
+        </div>
+
+        <div class="product-container">
+            <label for="selectedProduct">Select Product:</label>
+            <select id="selectedProduct" class="product-dropdown">
+                <option th:each="product : ${products}" th:value="${product.id}"
+                        th:text="${product.name + ' - ' + product.price}"></option>
+            </select>
+        </div>
+
+        <button type="button" id="submitBtn" th:data-user="${user.getId().toString()}"
+                onclick="submitReview(this.getAttribute('data-user'))">Submit Review
+        </button>
+    </form>
+</div>
+
+<script>
+    function submitReview(userid) {
+        var text = document.getElementById('text').value;
+        var rating = document.getElementById('rating').value;
+        var selectedProductId = document.getElementById('selectedProduct').value;
+
+        var reviewData = {
+            text: text,
+            rating: rating,
+            id_user: userid,
+            id_product: selectedProductId.toString()
+        };
+
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", "/review/add", true);
+        xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState === XMLHttpRequest.DONE) {
+                var notification = document.createElement('div');
+                notification.className = 'notification';
+                if (xhr.status === 200) {
+                    notification.textContent = 'Review-ul a fost adaugat!';
+                } else {
+                    notification.textContent = 'Nu s-a adaugat review-ul!';
+                }
+                document.body.appendChild(notification);
+
+                setTimeout(function () {
+                    window.location.href = "/review/listOfReviews";
+                }, 1500);
+            }
+        };
+        xhr.send(JSON.stringify(reviewData));
+    }
+</script>
+
+<script>
+    document.getElementById('rating').addEventListener('input', function () {
+        var input = this;
+        var value = parseInt(input.value, 10);
+        var min = parseInt(input.min, 10);
+        var max = parseInt(input.max, 10);
+
+        if (value < min) {
+            input.value = min;
+        } else if (value > max) {
+            input.value = max;
+        }
+    });
+</script>
+</body>
+</html>

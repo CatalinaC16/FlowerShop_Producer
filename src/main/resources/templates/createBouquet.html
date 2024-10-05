@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Creaza buchet</title>
+    <link th:href="@{/styles/cssandjs/create.css}" rel="stylesheet"/>
+</head>
+<body>
+<div class="container">
+    <h2>Creaza buchet</h2>
+    <form id="customProductForm" th:action="@{/bouquet/add}" method="POST">
+        <div class="form-group">
+            <label for="name">Nume:</label>
+            <input type="text" id="name" name="name" pattern="[A-Za-z\s]+" title="Introdu doar litere si spatii in nume"
+                   required>
+        </div>
+
+        <div class="form-group">
+            <label for="description">Descriere:</label>
+            <input type="text" id="description" name="description" pattern="[A-Za-z\s]+"
+                   title="Introdu doar litere si spatii in descriere" required>
+        </div>
+
+        <div class="form-group">
+            <label for="id_user">Id_user:</label>
+            <input type="text" id="id_user" name="id_user" th:value="${user.id}" readonly>
+        </div>
+
+        <div class="form-group">
+            <label>Selectați produsele:</label>
+            <div class="product-container">
+                <th:block th:each="product : ${products}">
+                    <div class="product">
+                        <input type="checkbox" id="product-${product.id}" name="selectedProducts"
+                               th:value="${product.id}" th:data-price="${product.price}">
+                        <label th:for="'product-' + ${product.id}" th:text="${product.name}"></label>
+                        <span class="price" th:text="${product.price}"></span> Lei
+                    </div>
+                </th:block>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Cantități:</label>
+            <div class="quantities-container">
+            </div>
+            <small>Introduceți cantitatea pentru fiecare produs selectat.</small>
+        </div>
+
+        <div class="form-group">
+            <label for="totalPrice">Preț Total:</label>
+            <input type="text" id="totalPrice" name="totalPrice" readonly>
+        </div>
+
+        <button type="submit">Creaza buchet</button>
+    </form>
+</div>
+
+<script>
+
+    document.getElementById('customProductForm').addEventListener('submit', function (event) {
+        event.preventDefault();
+
+        var formData = {
+            name: document.getElementById('name').value,
+            description: document.getElementById('description').value,
+            id_user: document.getElementById('id_user').value,
+            id_products: [],
+            quantities: []
+        };
+
+        var selectedProducts = document.querySelectorAll('input[name="selectedProducts"]:checked');
+
+        selectedProducts.forEach(function (checkbox) {
+            var productId = checkbox.value;
+            formData.id_products.push(productId);
+            var quantityInput = document.getElementById('quantity-' + productId);
+            formData.quantities.push(quantityInput.value);
+        });
+
+        fetch(this.action, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(formData)
+        })
+            .then(response => {
+                if (response.ok) {
+                    window.location.href = "/cart/getByUser";
+                } else {
+                    window.location.reload();
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+    });
+
+    var productContainer = document.querySelector('.product-container');
+    var quantitiesContainer = document.querySelector('.quantities-container');
+    var totalPriceField = document.getElementById('totalPrice');
+    var submitButton = document.querySelector('button[type="submit"]');
+
+    productContainer.addEventListener('change', function (event) {
+        var selectedCheckbox = event.target;
+        if (selectedCheckbox.type === 'checkbox') {
+            var productId = selectedCheckbox.value;
+            if (selectedCheckbox.checked) {
+                var quantityInput = document.createElement('input');
+                quantityInput.type = 'number';
+                quantityInput.id = 'quantity-' + productId;
+                quantityInput.name = 'quantity-' + productId;
+                quantityInput.required = true;
+                quantityInput.placeholder = 'Cantitate pentru ' + selectedCheckbox.nextElementSibling.textContent;
+                quantityInput.min = 1;
+                quantityInput.addEventListener('input', function () {
+                    if (quantityInput.value < 1) {
+                        quantityInput.value = 1;
+                    }
+                    updatePrice();
+                });
+                quantitiesContainer.appendChild(quantityInput);
+            } else {
+                var quantityInputToRemove = document.getElementById('quantity-' + productId);
+                if (quantityInputToRemove) {
+                    quantityInputToRemove.remove();
+                }
+                updatePrice();
+            }
+            updateSubmitButtonState();
+        }
+    });
+
+
+    function updatePrice() {
+        var selectedProducts = document.querySelectorAll('input[name="selectedProducts"]:checked');
+        var total = 0;
+
+        selectedProducts.forEach(function (checkbox) {
+            var productId = checkbox.value;
+            var quantityInput = document.getElementById('quantity-' + productId);
+            var price = parseFloat(checkbox.dataset.price);
+            var quantity = parseInt(quantityInput.value);
+            total += price * quantity;
+        });
+
+        totalPriceField.value = total.toFixed(2);
+    }
+
+    function updateSubmitButtonState() {
+        var checkedCheckboxes = document.querySelectorAll('input[name="selectedProducts"]:checked');
+        if (checkedCheckboxes.length > 0) {
+            submitButton.removeAttribute('disabled');
+        } else {
+            submitButton.setAttribute('disabled', 'disabled');
+        }
+    }
+
+    updatePrice();
+    updateSubmitButtonState();
+</script>
+</body>
+</html>

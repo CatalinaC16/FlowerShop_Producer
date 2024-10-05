@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Review Form</title>
+    <link th:href="@{/styles/cssandjs/create.css}" rel="stylesheet"/>
+</head>
+<body>
+<div class="container">
+    <h2>Modifica review-ul</h2>
+    <form id="reviewForm" th:action="@{/review/update/__${review.id}__}" th:object="${review}" method="POST"
+          enctype="multipart/form-data">
+        <div class="form-group">
+            <label for="text">Text:</label>
+            <input type="text" id="text" name="text" th:field="*{text}" minlength="1" maxlength="100"
+                   title="Scrie intre 1 si 100 caractere" required>
+        </div>
+        <div class="form-group">
+            <label for="rating">Rating:</label>
+            <input type="number" id="rating" name="rating" th:field="*{rating}"
+                   min="1" max="10" title="Da o nota intre 1 si 10" required>
+        </div>
+        <button id="submitBtn" type="submit">Update</button>
+    </form>
+</div>
+<script>
+    document.getElementById('reviewForm').addEventListener('submit', function (event) {
+        event.preventDefault();
+
+        var formData = new FormData(this);
+        fetch(this.action, {
+            method: 'POST',
+            body: formData
+        })
+            .then(response => {
+                if (response.redirected) {
+                    var notification = document.createElement('div');
+                    if (response.url.includes('/review/listOfReviews')) {
+                        setTimeout(function () {
+                            document.getElementById('reviewForm').submit();
+                        }, 1000);
+                        notification.className = 'notification';
+                        notification.textContent = 'Review-ul a fost modificat!';
+                        document.body.appendChild(notification);
+                    } else {
+                        notification.className = 'notificationError';
+                        notification.textContent = 'Nu s-a putut modifica review-ul!';
+                        document.body.appendChild(notification);
+                        setTimeout(function () {
+                            window.location.reload();
+                        }, 1000);
+                    }
+                }
+            })
+    });
+
+    document.getElementById('rating').addEventListener('input', function () {
+        var input = this;
+        var value = parseInt(input.value, 10);
+        var min = parseInt(input.min, 10);
+        var max = parseInt(input.max, 10);
+
+        if (value < min) {
+            input.value = min;
+        } else if (value > max) {
+            input.value = max;
+        }
+    });
+</script>
+</body>
+</html>

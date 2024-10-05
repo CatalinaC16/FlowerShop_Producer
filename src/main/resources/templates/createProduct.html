@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adauga produs</title>
+    <link th:href="@{/styles/cssandjs/create.css}" rel="stylesheet"/>
+</head>
+<body>
+<div class="container">
+    <h2>Adauga produs</h2>
+    <form id="productForm" th:action="@{/product/createProduct}" th:object="${product}" method="POST">
+        <div class="form-group">
+            <label for="name">Nume:</label>
+            <input type="text" id="name" name="name" th:field="*{name}" pattern="[A-Za-z\s]+"
+                   title="Introdu doar litere si spatii in nume" required>
+        </div>
+
+        <div class="form-group">
+            <label for="imageUrl">ImageUrl:</label>
+            <input type="text" id="imageUrl" name="imageUrl" th:field="*{imageUrl}" title="Introdu un url catre imagine"
+                   required>
+        </div>
+
+        <div class="form-group">
+            <label for="description">Descriere:</label>
+            <input type="text" id="description" name="description" th:field="*{description}" pattern="[A-Za-z\s]+"
+                   title="Introdu doar litere si spatii in descriere" required>
+        </div>
+
+        <div class="form-group">
+            <label for="price">Preț:</label>
+            <input type="number" id="price" name="price" th:field="*{price}" min="5"
+                   title="Pretul trebuie sa fie mai mare de 5 lei" required>
+        </div>
+
+        <div class="form-group">
+            <label for="stock">Stoc:</label>
+            <input type="number" id="stock" name="stock" th:field="*{stock}" min="1"
+                   title="Stocul trebuie sa fie mai mare sau egal cu 1" required>
+        </div>
+
+        <div class="form-group">
+            <label for="category">Categorie:</label>
+            <select id="category" name="category" th:field="*{category}">
+                <option th:each="cat : ${T(com.example.flowerShop.utils.category.CategoryName).values()}"
+                        th:value="${cat.name()}"
+                        th:text="${cat}">
+                </option>
+            </select>
+        </div>
+        <button type="submit">Adauga</button>
+    </form>
+</div>
+<script>
+    document.getElementById('productForm').addEventListener('submit', function (event) {
+        event.preventDefault();
+
+        var formData = new FormData(this);
+        fetch(this.action, {
+            method: 'POST',
+            body: formData
+        })
+            .then(response => {
+                if (response.redirected) {
+                    var notification = document.createElement('div');
+                    if (response.url.includes('/product/listOfProducts')) {
+                        notification.className = 'notification';
+                        notification.textContent = 'Produsul a fost creat cu succes!';
+                        document.body.appendChild(notification);
+                        setTimeout(function () {
+                            window.location.href = response.url;
+                        }, 1000);
+                    } else {
+                        notification.className = 'notificationError';
+                        notification.textContent = 'Datele introduse nu sunt corecte!';
+                        document.body.appendChild(notification);
+                        setTimeout(function () {
+                            window.location.reload();
+                        }, 1000);
+                    }
+                }
+            })
+    });
+    document.getElementById('price').addEventListener('input', function () {
+        var input = this;
+        var value = parseFloat(input.value);
+        var min = parseFloat(input.min);
+
+        if (value < min) {
+            input.value = min;
+        }
+    });
+
+    document.getElementById('stock').addEventListener('input', function () {
+        var input = this;
+        var value = parseInt(input.value, 10);
+        var min = parseInt(input.min, 10);
+
+        if (value < min) {
+            input.value = min;
+        }
+    });
+</script>
+</body>
+</html>

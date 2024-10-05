@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista comenzi</title>
+    <link th:href="@{/styles/cssandjs/listOfProducts.css}" rel="stylesheet"/>
+</head>
+<div class="navbar">
+    <ul>
+        <li>
+            <form th:action="@{/product/listOfProducts}" method="get">
+                <button class="nav" type="submit">Produse</button>
+            </form>
+        </li>
+        <li>
+            <form th:action="@{/review/listOfReviews}" method="get">
+                <button class="nav" type="submit">Reviews</button>
+            </form>
+        </li>
+        <li>
+            <form th:action="@{/cart/getByUser}" method="get">
+                <button class="nav" type="submit">Cos</button>
+            </form>
+        </li>
+        <li>
+            <form th:action="@{/order/getByUser/all/{userId}(userId=${user.getId()})}" method="get">
+                <button class="nav" type="submit">Comenzi</button>
+            </form>
+        </li>
+        <li th:if="${user.getRole().toString()} == 'ADMIN'">
+            <form th:action="@{/card/listOfPayments}" method="get">
+                <button class="nav" type="submit">Plati</button>
+            </form>
+        </li>
+        <li th:if="${user.getRole().toString()} == 'ADMIN'">
+            <form th:action="@{/listOfUsers}" method="get">
+                <button class="nav" type="submit">Useri</button>
+            </form>
+        </li>
+        <li th:if="${user.getRole().toString()} == 'ADMIN'">
+            <form th:action="@{/promotion/get/all}" method="get">
+                <button class="nav" type="submit">Promotii</button>
+            </form>
+        </li>
+        <li>
+            <form th:action="@{/userProfile}" method="get">
+                <button class="nav" type="submit">Profil</button>
+            </form>
+        </li>
+        <li>
+            <form th:action="@{/logout}" method="get">
+                <button class="nav" type="submit">Log Out</button>
+            </form>
+        </li>
+    </ul>
+</div>
+<body class="floral-background">
+<div class="container floral-border">
+    <h1 class="floral-header" style="margin-left: 3rem;">Lista comenzi</h1>
+
+    <form th:if="${user.getRole().toString()} == 'ADMIN'" id="reportForm" class="formats" action="/order/report/"
+          method="post">
+        <input class="rd" type="radio" id="pdf" name="reportFormat" value="pdf">
+        <label class="rd" for="pdf">PDF</label><br>
+        <input class="rd" type="radio" id="csv" name="reportFormat" value="csv">
+        <label class="rd" for="csv">CSV</label><br>
+        <input class="rd" type="radio" id="txt" name="reportFormat" value="txt">
+        <label class="rd" for="txt">TXT</label><br>
+        <button class="rd" type="button" onclick="submitForm()">Generare raport</button>
+    </form>
+
+    <form th:if="${user.getRole().toString()} == 'CUSTOMER'" id="reportUserForm" class="formats"
+          action="/order/reportUser/" method="post">
+        <input class="rd" type="radio" id="pdf2" name="reportUserFormat" value="pdf">
+        <label class="rd" for="pdf">PDF</label><br>
+        <input class="rd" type="radio" id="csv2" name="reportUserFormat" value="csv">
+        <label class="rd" for="csv">CSV</label><br>
+        <input class="rd" type="radio" id="txt2" name="reportUserFormat" value="txt">
+        <label class="rd" for="txt">TXT</label><br>
+        <button class="rd" type="button" onclick="submitFormUser()">Generare raport</button>
+    </form>
+
+    <table class="table table-bordered">
+        <thead class="thead-light">
+        <tr>
+            <th scope="col">ID</th>
+            <th scope="col">Status</th>
+            <th scope="col">Adresa</th>
+            <th scope="col">Tip plata</th>
+            <th scope="col">Total</th>
+            <th scope="col">Utilizator</th>
+            <th scope="col">Data comanda</th>
+            <th scope="col">Elimina</th>
+            <th th:if="${user.getRole().toString()} == 'ADMIN'" scope="col">Modifica</th>
+
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="order : ${orders}">
+            <td th:text="${order.getId().toString()}">ID</td>
+            <td th:text="${order.getStatus()}">Status</td>
+            <td th:text="${order.getAddress()}">Adresa</td>
+            <td th:text="${order.getPay()}">Tip plata</td>
+            <td th:text="${order.getTotalPrice()}">Total</td>
+            <td th:text="${order.getUser().getName()}">Utilizator</td>
+            <td th:text="${order.getOrderDate()}">Data comanda</td>
+            <td>
+                <form th:id="'deleteOrder_' + ${order.getId()}"
+                      th:action="@{/order/delete/{orderId}(orderId=${order.getId()})}" method="post">
+                    <button type="submit">Sterge</button>
+                </form>
+            </td>
+            <td th:if="${user.getRole().toString()} == 'ADMIN'">
+                <form th:action="@{/order/update/{orderId}(orderId=${order.getId()})}" method="get">
+                    <button type="submit">Modifica</button>
+                </form>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+<script>
+    document.querySelectorAll('[id^="deleteOrder_"]').forEach(function (form) {
+        form.addEventListener('submit', function (event) {
+            event.preventDefault();
+
+            var formData = new FormData(this);
+            fetch(this.action, {
+                method: 'POST',
+                body: formData
+            })
+                .then(response => {
+                    if (response.redirected) {
+                        var notificationExists = document.querySelector('.notification');
+                        if (!notificationExists) {
+                            var notification = document.createElement('div');
+                            if (response.url.includes('/order/getByUser/all')) {
+                                setTimeout(function () {
+                                    window.location.href = response.url
+                                }, 1000);
+                                notification.className = 'notification';
+                                notification.textContent = 'Comanda a fost stearsa!';
+                                document.body.appendChild(notification);
+                            } else {
+                                notification.className = 'notificationError';
+                                notification.textContent = 'Nu s-a putut sterge comanda!';
+                                document.body.appendChild(notification);
+                                setTimeout(function () {
+                                    window.location.reload();
+                                }, 1000);
+                            }
+                        }
+                    }
+                })
+        });
+    });
+</script>
+
+<script>
+    function submitForm() {
+        var selectedFormat = document.querySelector('input[name="reportFormat"]:checked').value;
+        var form = document.getElementById('reportForm');
+        form.action = "/order/report/" + selectedFormat;
+        form.submit();
+    }
+
+    function submitFormUser() {
+        var selectedFormat = document.querySelector('input[name="reportUserFormat"]:checked').value;
+        var form = document.getElementById('reportUserForm');
+        form.action = "/order/reportUser/" + selectedFormat;
+        form.submit();
+    }
+</script>
+
+</body>
+</html>

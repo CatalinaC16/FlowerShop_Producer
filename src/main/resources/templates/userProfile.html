@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cont user</title>
+    <link th:href="@{/styles/cssandjs/profile.css}" rel="stylesheet"/>
+</head>
+
+<body>
+<div class="navbar">
+    <ul>
+        <li>
+            <form th:action="@{/product/listOfProducts}" method="get">
+                <button class="nav" type="submit">Produse</button>
+            </form>
+        </li>
+        <li>
+            <form th:action="@{/review/listOfReviews}" method="get">
+                <button class="nav" type="submit">Reviews</button>
+            </form>
+        </li>
+        <li>
+            <form th:action="@{/cart/getByUser}" method="get">
+                <button class="nav" type="submit">Cos</button>
+            </form>
+        </li>
+        <li>
+            <form th:action="@{/order/getByUser/all/{userId}(userId=${user.getId()})}" method="get">
+                <button class="nav" type="submit">Comenzi</button>
+            </form>
+        </li>
+        <li th:if="${user.getRole().toString()} == 'ADMIN'">
+            <form th:action="@{/card/listOfPayments}" method="get">
+                <button class="nav" type="submit">Plati</button>
+            </form>
+        </li>
+        <li th:if="${user.getRole().toString()} == 'ADMIN'">
+            <form th:action="@{/listOfUsers}" method="get">
+                <button class="nav" type="submit">Useri</button>
+            </form>
+        </li>
+        <li th:if="${user.getRole().toString()} == 'ADMIN'">
+            <form th:action="@{/promotion/get/all}" method="get">
+                <button class="nav" type="submit">Promotii</button>
+            </form>
+        </li>
+        <li>
+            <form th:action="@{/userProfile}" method="get">
+                <button class="nav" type="submit">Profil</button>
+            </form>
+        </li>
+        <li>
+            <form th:action="@{/logout}" method="get">
+                <button class="nav" type="submit">Log Out</button>
+            </form>
+        </li>
+    </ul>
+</div>
+
+<div>
+    <div class="container">
+        <h2>Profil user</h2>
+        <p><strong>Name:</strong> <span th:text="${user.name}"></span></p>
+        <p><strong>Contact Number:</strong> <span th:text="${user.contactNumber}"></span></p>
+        <p><strong>Email:</strong> <span th:text="${user.email}"></span></p>
+        <p><strong>Address:</strong> <span th:text="${user.address}"></span></p>
+        <p><strong>Role:</strong> <span th:text="${user.role}"></span></p>
+        <div class="buttons">
+            <form th:action="@{/updateUser/__${user.id}__}" method="get">
+                <button type="submit">Modifica</button>
+            </form>
+            <form id="deleteUserForm" th:action="@{/delete/__${user.id}__}" method="post">
+                <button class="deleteUser" type="submit">Sterge</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('deleteUserForm').addEventListener('submit', function (event) {
+        event.preventDefault();
+
+        var formData = new FormData(this);
+        fetch(this.action, {
+            method: 'POST',
+            body: formData
+        })
+            .then(response => {
+                if (response.redirected) {
+                    var notification = document.createElement('div');
+                    if (response.url.includes('/login') || response.url.includes('/listOfUsers')) {
+                        setTimeout(function () {
+                            window.location.href = response.url
+                        }, 1000);
+                        notification.className = 'notification';
+                        notification.textContent = 'Profilul a fost sters!';
+                        document.body.appendChild(notification);
+                    } else {
+                        notification.className = 'notificationError';
+                        notification.textContent = 'Nu s-a putut sterge profilul!';
+                        document.body.appendChild(notification);
+                        setTimeout(function () {
+                            window.location.reload();
+                        }, 1000);
+                    }
+                }
+            })
+    });
+</script>
+</body>
+</html>

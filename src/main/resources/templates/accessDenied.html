@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acces nepermis</title>
+    <link th:href="@{/styles/cssandjs/listOfProducts.css}" rel="stylesheet"/>
+</head>
+<body class="floral-background">
+<div class="navbar">
+    <ul>
+        <li>
+            <form th:action="@{/product/listOfProducts}" method="get">
+                <button class="nav" type="submit">Produse</button>
+            </form>
+        </li>
+        <li>
+            <form th:action="@{/review/listOfReviews}" method="get">
+                <button class="nav" type="submit">Reviews</button>
+            </form>
+        </li>
+        <li>
+            <form th:action="@{/cart/getByUser}" method="get">
+                <button class="nav" type="submit">Cos</button>
+            </form>
+        </li>
+        <li>
+            <form th:action="@{/order/getByUser/all/{userId}(userId=${user.getId()})}" method="get">
+                <button class="nav" type="submit">Comenzi</button>
+            </form>
+        </li>
+        <li th:if="${user.getRole().toString()} == 'ADMIN'">
+            <form th:action="@{/card/listOfPayments}" method="get">
+                <button class="nav" type="submit">Plati</button>
+            </form>
+        </li>
+        <li th:if="${user.getRole().toString()} == 'ADMIN'">
+            <form th:action="@{/listOfUsers}" method="get">
+                <button class="nav" type="submit">Useri</button>
+            </form>
+        </li>
+        <li th:if="${user.getRole().toString()} == 'ADMIN'">
+            <form th:action="@{/promotion/get/all}" method="get">
+                <button class="nav" type="submit">Promotii</button>
+            </form>
+        </li>
+        <li>
+            <form th:action="@{/userProfile}" method="get">
+                <button class="nav" type="submit">Profil</button>
+            </form>
+        </li>
+        <li>
+            <form th:action="@{/logout}" method="get">
+                <button class="nav" type="submit">Log Out</button>
+            </form>
+        </li>
+    </ul>
+</div>
+<div class="container floral-border">
+    <h1 class="floral-header" style="margin-left: 3rem;">Acces blocat</h1>
+    <p>Nu ai acces la aceasta pagina.</p>
+</div>
+</body>
+</html>

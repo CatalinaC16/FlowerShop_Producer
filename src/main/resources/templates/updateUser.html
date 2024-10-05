@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modifica user</title>
+    <link th:href="@{/styles/cssandjs/create.css}" rel="stylesheet"/>
+</head>
+<body>
+<div class="container">
+    <h2>Modifica date profil</h2>
+    <form id="updateUserForm" th:action="@{/update/__${user.id}__}" th:object="${user}" method="POST">
+        <div class="form-group">
+            <label for="name">Nume:</label>
+            <input type="text" id="name" name="name" th:field="*{name}" pattern="^[A-Za-z]+\s[A-Za-z]+$" maxlength="30"
+                   title="Introdu un nume valid, format din cel putin doua cuvinte" required th:value="${user.name}">
+        </div>
+
+        <div class="form-group">
+            <label for="contactNumber">Contact:</label>
+            <input type="text" id="contactNumber" name="contactNumber" pattern="\d{10}"
+                   title="Introdu un numar de contact valid de 10 cifre" th:field="*{contactNumber}" required>
+        </div>
+
+        <div class="form-group">
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" th:field="*{email}" pattern="[a-zA-Z0-9._%+-]+@gmail\.com$"
+                   title="Te rog introdu o adresa de Gmail valida" required>
+        </div>
+
+        <div class="form-group">
+            <label for="address">Adresa:</label>
+            <input type="text" id="address" name="address" th:field="*{address}" pattern="[a-zA-Z0-9\s]+"
+                   title="Introdu cel putin un cuvant in adresa ta" required>
+        </div>
+
+        <div class="form-group">
+            <div class="radio-buttons">
+                <label for="role_customer">Customer</label>
+                <input type="radio" id="role_customer" name="role" value="CUSTOMER" th:field="*{role}"
+                       th:checked="${user.role == 'CUSTOMER'}">
+                <label for="role_admin">Admin</label>
+                <input type="radio" id="role_admin" name="role" value="ADMIN" th:field="*{role}"
+                       th:checked="${user.role == 'ADMIN'}">
+            </div>
+        </div>
+        <button type="submit" id="submitBtn">Modifica</button>
+    </form>
+</div>
+
+<script>
+    document.getElementById('updateUserForm').addEventListener('submit', function (event) {
+        event.preventDefault();
+
+        var formData = new FormData(this);
+        fetch(this.action, {
+            method: 'POST',
+            body: formData
+        })
+            .then(response => {
+                if (response.redirected) {
+                    var notification = document.createElement('div');
+                    if (response.url.includes('/listOfUsers') || response.url.includes('/userProfile')) {
+                        setTimeout(function () {
+                            document.getElementById('updateUserForm').submit();
+                        }, 1000);
+                        notification.className = 'notification';
+                        notification.textContent = 'Datele profilului au fost modificate!';
+                        document.body.appendChild(notification);
+                    } else {
+                        notification.className = 'notificationError';
+                        notification.textContent = 'Nu s-au modificat datele!';
+                        document.body.appendChild(notification);
+                        setTimeout(function () {
+                            window.location.reload();
+                        }, 1000);
+                    }
+                }
+            })
+    });
+</script>
+</body>
+</html>

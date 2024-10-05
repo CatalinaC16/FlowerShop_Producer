@@ -1,0 +1,154 @@
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    background-color: #f0cecc;
+    opacity: 0.6;
+    color: #333333;
+    height: 3.5rem;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+}
+
+.navbar ul {
+    display: flex;
+    list-style: none;
+    margin-left: 4rem;
+}
+
+.navbar li {
+    margin-right: 10px;
+}
+
+.logout-form {
+    display: inline;
+}
+
+button {
+    width: 5rem;
+    background-color: #723b38;
+    color: #ffffff;
+    margin-top: 0;
+    display: inline-block;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.logout-form button {
+    background-color: #f0cecc;
+    color: #723b38;
+    border: none;
+    padding: 8px 16px;
+    cursor: pointer;
+}
+
+.logout-form button:hover {
+    background-color: #7e98a9;
+}
+
+
+body {
+    background-color: #f8f9fa;
+    font-family: 'Segoe UI', sans-serif;
+    background-image: url('floral-background.jpg');
+    background-size: cover;
+    backdrop-filter: opacity(0.5);
+    background-attachment: fixed;
+}
+
+.container {
+    margin: 0 auto;
+    max-width: 50%;
+    background-color: #f0cecc;
+    border-radius: 20px;
+    box-shadow: 0 0 10px #7e98a9;
+    padding: 20px;
+    margin-top: 2rem;
+    text-align: center;
+}
+
+.profile-details {
+    margin-bottom: 20px;
+}
+
+.profile-details p {
+    margin: 5px 0;
+}
+
+.profile-details strong {
+    margin-right: 5px;
+}
+
+.profile-details span {
+    font-weight: bold;
+    color: #333;
+}
+
+@media screen and (max-width: 768px) {
+    .container {
+        max-width: 50%;
+    }
+}
+
+h2 {
+    font-family: 'Segoe UI', sans-serif;
+    color: #723b38;
+    margin-bottom: 1.5rem;
+}
+
+.buttons {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+}
+
+.buttons button {
+    margin-left: 10px;
+}
+
+.notification {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #7e98a9;
+    border: 2px solid #af7777;
+    color: black;
+    padding: 15px;
+    border-radius: 5px;
+    z-index: 1000;
+    box-shadow: 0px 0px 10px rgb(55, 91, 114);
+}
+
+.notificationError {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #af7777;
+    border: 2px solid #7e98a9;
+    color: black;
+    padding: 15px;
+    border-radius: 5px;
+    z-index: 1000;
+    box-shadow: 0px 0px 10px rgb(55, 91, 114);
+}
+
+.floral-header {
+    color: #723b38;
+    text-align: center;
+    font-size: 36px;
+    margin-bottom: 30px;
+    margin-left: 7rem;
+    text-shadow: 2px 2px 4px rgba(241, 142, 160, 0.7);
+    font-family: Georgia, serif;
+}
+
+.nav {
+    width: 5rem;
+    padding: 0.2rem;
+    padding-left: 0.6rem;
+    padding-right: 0.5rem;
+    margin-left: 1.5rem;
+    border-radius: 0.5rem;
+}

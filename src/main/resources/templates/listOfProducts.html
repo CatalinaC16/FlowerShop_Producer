@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista produse</title>
+    <link th:href="@{/styles/cssandjs/listOfProducts.css}" rel="stylesheet"/>
+</head>
+<body class="floral-background">
+<div class="navbar">
+    <ul>
+        <li>
+            <form th:action="@{/product/listOfProducts}" method="get">
+                <button class="nav" type="submit">Produse</button>
+            </form>
+        </li>
+        <li>
+            <form th:action="@{/review/listOfReviews}" method="get">
+                <button class="nav" type="submit">Reviews</button>
+            </form>
+        </li>
+        <li>
+            <form th:action="@{/cart/getByUser}" method="get">
+                <button class="nav" type="submit">Cos</button>
+            </form>
+        </li>
+        <li>
+            <form th:action="@{/order/getByUser/all/{userId}(userId=${user.getId()})}" method="get">
+                <button class="nav" type="submit">Comenzi</button>
+            </form>
+        </li>
+        <li th:if="${user.getRole().toString()} == 'ADMIN'">
+            <form th:action="@{/card/listOfPayments}" method="get">
+                <button class="nav" type="submit">Plati</button>
+            </form>
+        </li>
+        <li th:if="${user.getRole().toString()} == 'ADMIN'">
+            <form th:action="@{/listOfUsers}" method="get">
+                <button class="nav" type="submit">Useri</button>
+            </form>
+        </li>
+        <li th:if="${user.getRole().toString()} == 'ADMIN'">
+            <form th:action="@{/promotion/get/all}" method="get">
+                <button class="nav" type="submit">Promotii</button>
+            </form>
+        </li>
+        <li>
+            <form th:action="@{/userProfile}" method="get">
+                <button class="nav" type="submit">Profil</button>
+            </form>
+        </li>
+        <li>
+            <form th:action="@{/logout}" method="get">
+                <button class="nav" type="submit">Log Out</button>
+            </form>
+        </li>
+    </ul>
+</div>
+
+<div class="container">
+
+    <form class="addProduct" th:if="${user.getRole().toString()} == 'ADMIN'" th:action="@{/product/add}" method="get">
+        <button type="submit">Adauga produs</button>
+    </form>
+
+    <form class="addProduct" th:action="@{/bouquet/create}" method="get">
+        <button type="submit">Creaza buchet</button>
+    </form>
+
+    <h1 class="floral-header">Lista produse</h1>
+
+    <form id="filterForm" class="filter" action="#" th:action="@{/product/listOfProducts}" method="get">
+        <div class="category">
+            <label><input type="radio" name="category" value="FLOWERS">Flori</label>
+            <label><input type="radio" name="category" value="VASES">Vase</label>
+            <label><input type="radio" name="category" value="ACCESSORIES">Accesorii</label>
+            <label><input type="radio" name="category" value="ALL" id="allRadio" checked>Toate</label>
+
+            <button type="submit">Filtrare</button>
+        </div>
+
+        <div class="prods">
+            <button class="buttonSort" type="submit" name="sortPrice" value="asc">Sortează Pret Asc</button>
+            <button class="buttonSort" type="submit" name="sortPrice" value="desc">Sortează Pret Desc</button>
+        </div>
+
+        <div class="search">
+            <input type="text" name="search" placeholder="Caută după nume..." value="">
+            <button type="submit">Caută</button>
+            <button type="button" class="resetFilter" onclick="resetFilters()">Resetare</button>
+        </div>
+
+    </form>
+
+    <div class="product-container" th:each="product : ${products}">
+        <div class="product">
+            <div>
+                <img th:src="${product.imageUrl}" alt="Imagine produs"/>
+            </div>
+
+            <div>
+                <div>ID: <span th:text="${product.id}">ID</span></div>
+                <div>Nume: <span th:text="${product.name}">Nume</span></div>
+                <div>Descriere: <span th:text="${product.description}">Descriere</span></div>
+                <div>Pret: <span th:text="${product.price}">Pret</span></div>
+                <div>Stoc: <span th:text="${product.stock}">Stoc</span></div>
+
+                <div class="quantity-counter">
+                    <span>Cantitate:</span>
+                    <label th:for="${'quantity-' + product.id}"></label>
+                    <input th:id="${'quantity-' + product.id}" type="number"
+                           class="quantity-input" th:value="1" th:min="1" th:max="${product.stock}">
+                </div>
+            </div>
+
+            <div class="buttonsModif">
+                <form>
+                    <button class="buttons-product"
+                            th:data-name="${product.id}"
+                            th:data-user="${user.getId().toString()}"
+                            onclick="addProductToCart(this.getAttribute('data-name'),this.getAttribute('data-user'))">
+                        Adauga in cos
+                    </button>
+                </form>
+
+                <div class="adminButtons" th:if="${user.getRole().toString()} == 'ADMIN'">
+                    <form th:action="@{/product/updateProduct/{productId}(productId=${product.getId()})}" method="get">
+                        <button class="buttons-product" type="submit">Modifica produs</button>
+                    </form>
+                    <form th:id="'deleteProd_' + ${product.getId()}"
+                          th:action="@{/product/delete/{productId}(productId=${product.getId()})}" method="post">
+                        <button class="buttons-product" type="submit">Sterge produs</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.querySelectorAll('[id^="deleteProd_"]').forEach(function (form) {
+        form.addEventListener('submit', function (event) {
+            event.preventDefault();
+
+            var formData = new FormData(this);
+            fetch(this.action, {
+                method: 'POST',
+                body: formData
+            })
+                .then(response => {
+                    if (response.redirected) {
+                        var notificationExists = document.querySelector('.notification');
+                        if (!notificationExists) {
+                            var notification = document.createElement('div');
+                            notification.className = 'notification';
+                            notification.textContent = 'Produsul a fost sters!';
+                            document.body.appendChild(notification);
+                            setTimeout(function () {
+                                window.location.reload();
+                            }, 2000);
+                        }
+                    }
+                })
+        });
+    });
+</script>
+
+<script>
+    function addProductToCart(productId, userId) {
+        let quantity = document.getElementById(`quantity-${productId}`).value;
+
+        if (isNaN(quantity) || quantity < 1) {
+            alert("Cantitatea trebuie sa fie un numar mai mare de 1.");
+            return;
+        }
+
+        const orderItemData = {
+            id_product: productId,
+            quantity: quantity
+        };
+
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", "/orderItem/add", false);
+        xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState === XMLHttpRequest.DONE) {
+                if (xhr.status === 201) {
+                    let responseData = JSON.parse(xhr.response);
+                    let id = responseData.message.toString();
+                    const shopCartData = {
+                        id_orderItems: [id]
+                    };
+
+                    var xhr2 = new XMLHttpRequest();
+                    xhr2.open("POST", "/cart/updateByUserId/" + userId, false);
+                    xhr2.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+                    xhr2.onreadystatechange = function () {
+                        if (xhr2.readyState === XMLHttpRequest.DONE) {
+                            window.alert("Produsul a fost adaugat cu succes in cos!");
+                            window.location.href = "/cart/getByUser"
+                            document.body.innerHTML = xhr2.response;
+                        }
+                    };
+                    xhr2.send(JSON.stringify(shopCartData));
+                } else {
+                    window.alert("Din pacate produsul nu a fost adaugat in cosul de cumparaturi!");
+                }
+            }
+        };
+        xhr.send(JSON.stringify(orderItemData));
+    }
+</script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        var previousValue = localStorage.getItem("selectedCategory");
+        if (previousValue) {
+            if (previousValue !== "ALL") {
+                document.querySelector('input[name="category"][value="' + previousValue + '"]').checked = true;
+                localStorage.setItem("selectedCategory", previousValue);
+            } else {
+                document.getElementById("allRadio").checked = true;
+                localStorage.setItem("selectedCategory", "ALL");
+            }
+        } else {
+            document.getElementById("allRadio").checked = true;
+            localStorage.setItem("selectedCategory", "ALL");
+        }
+
+        document.getElementById("filterForm").addEventListener("submit", function () {
+            var selectedValue = document.querySelector('input[name="category"]:checked').value;
+            localStorage.setItem("selectedCategory", selectedValue);
+        });
+    });
+
+
+    function resetFilters() {
+        document.getElementById("allRadio").checked = true;
+        localStorage.removeItem("selectedCategory");
+        document.getElementById("filterForm").submit();
+    }
+
+    document.querySelectorAll('.quantity-input').forEach(function(input) {
+        input.addEventListener('input', function () {
+            var value = parseFloat(input.value);
+            var min = parseFloat(input.min);
+            var max = parseFloat(input.max);
+
+            if (value < min) {
+                input.value = min;
+            } else if (value > max) {
+                input.value = max;
+            }
+        });
+    });
+</script>
+</body>
+</html>

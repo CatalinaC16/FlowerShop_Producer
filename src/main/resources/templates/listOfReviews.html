@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link th:href="@{/styles/cssandjs/listOfProducts.css}" rel="stylesheet"/>
+    <title>Reviews la produse</title>
+</head>
+<body class="floral-background">
+<div class="navbar">
+    <ul>
+        <li>
+            <form th:action="@{/product/listOfProducts}" method="get">
+                <button class="nav" type="submit">Produse</button>
+            </form>
+        </li>
+        <li>
+            <form th:action="@{/review/listOfReviews}" method="get">
+                <button class="nav" type="submit">Reviews</button>
+            </form>
+        </li>
+        <li>
+            <form th:action="@{/cart/getByUser}" method="get">
+                <button class="nav" type="submit">Cos</button>
+            </form>
+        </li>
+        <li>
+            <form th:action="@{/order/getByUser/all/{userId}(userId=${user.getId()})}" method="get">
+                <button class="nav" type="submit">Comenzi</button>
+            </form>
+        </li>
+        <li th:if="${user.getRole().toString()} == 'ADMIN'">
+            <form th:action="@{/card/listOfPayments}" method="get">
+                <button class="nav" type="submit">Plati</button>
+            </form>
+        </li>
+        <li th:if="${user.getRole().toString()} == 'ADMIN'">
+            <form th:action="@{/listOfUsers}" method="get">
+                <button class="nav" type="submit">Useri</button>
+            </form>
+        </li>
+        <li th:if="${user.getRole().toString()} == 'ADMIN'">
+            <form th:action="@{/promotion/get/all}" method="get">
+                <button class="nav" type="submit">Promotii</button>
+            </form>
+        </li>
+        <li>
+            <form th:action="@{/userProfile}" method="get">
+                <button class="nav" type="submit">Profil</button>
+            </form>
+        </li>
+        <li>
+            <form th:action="@{/logout}" method="get">
+                <button class="nav" type="submit">Log Out</button>
+            </form>
+        </li>
+    </ul>
+</div>
+
+<div class="container" id="reviews">
+    <form class="addProduct" th:action="@{/review/createReview}" method="get">
+        <button type="submit">Adauga review</button>
+    </form>
+    <h1 class="floral-header">Review-uri produse</h1>
+    <div th:each="entry : ${reviewsByProduct}">
+        <ul>
+            <li>
+                <h2 th:text="${entry.key}"></h2>
+                <div class="product-container" th:each="review : ${entry.value}">
+                    <div class="product" style="display: block;">
+                        <div>User: <span th:text="${review.getUser().getName()}"></span></div>
+                        <div>Rating: <span th:text="${review.getRating()}"></span></div>
+                        <div>Review: <span th:text="${review.getText()}"></span></div>
+                        <div class="buttonsModif adminButtons" style="padding-left: 7rem;display: block;"
+                             th:if="${user.getId()} == ${review.getUser().getId()}">
+                            <form th:action="@{/review/updateReview/{reviewId}(reviewId=${review.getId()})}"
+                                  method="get">
+                                <button class="buttons-product" type="submit">Modifica</button>
+                            </form>
+                            <form th:id="'deleteReview_' + ${review.getId()}"
+                                  th:action="@{/review/delete/{reviewId}(reviewId=${review.getId()})}" method="post">
+                                <button class="buttons-product" type="submit">Sterge</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </li>
+        </ul>
+    </div>
+</div>
+<script>
+    document.querySelectorAll('[id^="deleteReview"]').forEach(function (form) {
+        form.addEventListener('submit', function (event) {
+            event.preventDefault();
+
+            var formData = new FormData(this);
+            fetch(this.action, {
+                method: 'POST',
+                body: formData
+            })
+                .then(response => {
+                    if (response.redirected) {
+                        var notificationExists = document.querySelector('.notification');
+                        if (!notificationExists) {
+                            var notification = document.createElement('div');
+                            notification.className = 'notification';
+                            notification.textContent = 'Review-ul a fost sters!';
+                            document.body.appendChild(notification);
+                            setTimeout(function () {
+                                window.location.reload();
+                            }, 2000);
+                        }
+                    }
+                })
+        });
+    });
+</script>
+</body>
+</html>

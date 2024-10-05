@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up</title>
+    <link th:href="@{/styles/cssandjs/create.css}" rel="stylesheet"/>
+</head>
+<body>
+<form class="another" th:action="@{/login}" method="get">
+    <button type="submit">Am cont</button>
+</form>
+<div class="container">
+    <h2>Creaza cont</h2>
+    <form id="signUpForm" th:action="@{/createUser}" th:object="${user}" method="POST">
+        <div class="form-group">
+            <label for="name">Nume:</label>
+            <input type="text" id="name" name="name" th:field="*{name}" pattern="^[A-Za-z]+\s[A-Za-z]+$" maxlength="30"
+                   title="Introdu un nume valid, format din cel putin doua cuvinte" required>
+        </div>
+
+        <div class="form-group">
+            <label for="contactNumber">Contact:</label>
+            <input type="text" id="contactNumber" name="contactNumber" th:field="*{contactNumber}" pattern="\d{10}"
+                   title="Introdu un numar de contact valid de 10 cifre" required>
+        </div>
+
+        <div class="form-group">
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" th:field="*{email}" pattern="[a-zA-Z0-9._%+-]+@gmail\.com$"
+                   title="Te rog introdu o adresa de Gmail valida" required>
+        </div>
+
+        <div class="form-group">
+            <label for="password">Parola:</label>
+            <input type="password" id="password" name="password" th:field="*{password}" minlength="4"
+                   title="Parola trebuie sa contina cel putin 4 caractere" required>
+        </div>
+
+        <div class="form-group">
+            <label for="address">Adresa:</label>
+            <input type="text" id="address" name="address" th:field="*{address}" pattern="[a-zA-Z0-9\s]+"
+                   title="Introdu cel putin un cuvant in adresa ta" required>
+        </div>
+
+        <div class="form-group">
+            <div class="radio-buttons">
+                <label for="role_customer">Customer</label>
+                <input type="radio" id="role_customer" name="role" value="CUSTOMER" checked>
+                <label for="role_admin">Admin</label>
+                <input type="radio" id="role_admin" name="role" value="ADMIN">
+            </div>
+        </div>
+        <button id="submitBtn" type="submit">Creaza</button>
+    </form>
+</div>
+<script>
+    document.getElementById('signUpForm').addEventListener('submit', function (event) {
+        event.preventDefault();
+
+        var formData = new FormData(this);
+        fetch(this.action, {
+            method: 'POST',
+            body: formData
+        })
+            .then(response => {
+                if (response.redirected) {
+                    var notification = document.createElement('div');
+                    if (response.url.includes('/login')) {
+                        notification.className = 'notification';
+                        notification.textContent = 'Contul a fost creat cu succes!';
+                        document.body.appendChild(notification);
+                        setTimeout(function () {
+                            window.location.href = '/login';
+                        }, 1000);
+                    } else {
+                        notification.className = 'notificationError';
+                        notification.textContent = 'Datele introduse nu sunt corecte!';
+                        document.body.appendChild(notification);
+                        setTimeout(function () {
+                            window.location.reload();
+                        }, 1000);
+                    }
+                }
+            })
+    });
+</script>
+</body>
+</html>

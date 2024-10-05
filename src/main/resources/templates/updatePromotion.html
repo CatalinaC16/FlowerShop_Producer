@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modifica Promotia</title>
+    <link th:href="@{/styles/cssandjs/create.css}" rel="stylesheet"/>
+</head>
+<body>
+<div class="container">
+    <h2>Modifica detalii promotie</h2>
+    <form id="promotionForm" th:action="@{/promotion/update/__${promotion.id}__}" th:object="${promotion}" method="POST"
+          enctype="multipart/form-data">
+        <div class="form-group">
+            <label for="name">Promotion Name:</label>
+            <input type="text" id="name" name="name" th:field="*{name}" pattern="[a-zA-Z0-9\s\'\-_]+"
+                   title="Introdu un cuvant in numele promotiei" required>
+        </div>
+        <div class="form-group">
+            <label for="discountPercentage">Discount Percentage:</label>
+            <input type="number" id="discountPercentage" name="discountPercentage" th:field="*{discountPercentage}"
+                   min="1" max="100" title="Discountul trebuie sa fie mai mare ca 1" required>
+        </div>
+        <button id="submitBtn" type="submit">Update</button>
+    </form>
+</div>
+<script>
+    document.getElementById('promotionForm').addEventListener('submit', function (event) {
+        event.preventDefault();
+
+        var formData = new FormData(this);
+        fetch(this.action, {
+            method: 'POST',
+            body: formData
+        })
+            .then(response => {
+                if (response.redirected) {
+                    var notification = document.createElement('div');
+                    if (response.url.includes('/promotion/get/all')) {
+                        setTimeout(function () {
+                            document.getElementById('promotionForm').submit();
+                        }, 1000);
+                        notification.className = 'notification';
+                        notification.textContent = 'Promotia a fost modificata!';
+                        document.body.appendChild(notification);
+                    } else {
+                        notification.className = 'notificationError';
+                        notification.textContent = 'Nu s-a modificat promotia!';
+                        document.body.appendChild(notification);
+                        setTimeout(function () {
+                            window.location.reload();
+                        }, 1000);
+                    }
+                }
+            })
+    });
+    document.getElementById('discountPercentage').addEventListener('input', function () {
+        var input = this;
+        var value = parseFloat(input.value);
+        var min = parseFloat(input.min);
+        var max = parseFloat(input.max);
+
+        if (value < min) {
+            input.value = min;
+        } else if (value > max) {
+            input.value = max;
+        }
+    });
+</script>
+</body>
+</html>

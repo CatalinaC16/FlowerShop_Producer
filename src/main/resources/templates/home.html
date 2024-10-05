@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home Page</title>
+    <link th:href="@{/styles/cssandjs/create.css}" rel="stylesheet"/>
+</head>
+<body>
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    var userId = /*[[${user.id}]]*/ '';
+    /*]]>*/
+</script>
+<script>
+    submitForm();
+
+    function submitForm() {
+        var formData = {
+            id_user: userId
+        };
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", "/cart/add", true);
+        xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState === 4 && xhr.status === 200) {
+                window.location.href = "/product/listOfProducts?";
+            }
+        };
+        xhr.send(JSON.stringify(formData));
+    }
+</script>
+</body>
+</html>

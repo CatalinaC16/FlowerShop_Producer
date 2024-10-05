@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Executa plata comenzii</title>
+    <link th:href="@{/styles/cssandjs/create.css}" rel="stylesheet"/>
+</head>
+<body>
+<div class="container">
+    <h2>Transfer</h2>
+    <form id="paymentForm" action="/card/add" method="POST">
+        <div class="form-group">
+            <label for="numarCard">Numar card:</label>
+            <input type="text" id="numarCard" name="numarCard" pattern="\d{16}"
+                   title="Trebuie sa contina exact 16 cifre" required>
+        </div>
+
+        <div class="form-group">
+            <label for="cvv">CVV:</label>
+            <input type="text" id="cvv" name="cvv" pattern="\d{3}" title="Trebuie sa contina exact 3 cifre" required>
+        </div>
+
+        <div class="form-group">
+            <label for="totalPrice">Pret total:</label>
+            <input type="text" id="totalPrice" name="totalPrice" th:value="${price}" readonly required>
+        </div>
+
+        <button type="submit">Plateste</button>
+    </form>
+</div>
+<script>
+    document.getElementById('paymentForm').addEventListener('submit', function (event) {
+        event.preventDefault();
+
+        var formData = new FormData(this);
+        fetch(this.action, {
+            method: 'POST',
+            body: formData
+        })
+            .then(response => {
+                if (response.redirected) {
+                    var notification = document.createElement('div');
+                    if (response.url.includes('/order/getByUser/all/')) {
+                        notification.className = 'notification';
+                        notification.textContent = 'Plata s-a efectuat!';
+                        document.body.appendChild(notification);
+                        setTimeout(function () {
+                            window.location.href = response.url;
+                        }, 1000);
+                    } else {
+                        notification.className = 'notificationError';
+                        notification.textContent = 'Nu s-a efectuat plata!';
+                        document.body.appendChild(notification);
+                        setTimeout(function () {
+                            window.location.reload();
+                        }, 1000);
+                    }
+                }
+            })
+    });
+</script>
+</body>
+</html>

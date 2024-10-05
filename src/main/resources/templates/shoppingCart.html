@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cos cumparaturi</title>
+    <link th:href="@{/styles/cssandjs/shopping-cart.css}" rel="stylesheet"/>
+</head>
+<body>
+<div class="navbar">
+    <ul>
+        <li>
+            <form th:action="@{/product/listOfProducts}" method="get">
+                <button class="nav" type="submit">Produse</button>
+            </form>
+        </li>
+        <li>
+            <form th:action="@{/review/listOfReviews}" method="get">
+                <button class="nav" type="submit">Reviews</button>
+            </form>
+        </li>
+        <li>
+            <form th:action="@{/cart/getByUser}" method="get">
+                <button class="nav" type="submit">Cos</button>
+            </form>
+        </li>
+        <li>
+            <form th:action="@{/order/getByUser/all/{userId}(userId=${shoppingCart.user.getId()})}" method="get">
+                <button class="nav" type="submit">Comenzi</button>
+            </form>
+        </li>
+        <li th:if="${shoppingCart.user.getRole().toString()} == 'ADMIN'">
+            <form th:action="@{/card/listOfPayments}" method="get">
+                <button class="nav" type="submit">Plati</button>
+            </form>
+        </li>
+        <li th:if="${shoppingCart.user.getRole().toString()} == 'ADMIN'">
+            <form th:action="@{/listOfUsers}" method="get">
+                <button class="nav" type="submit">Useri</button>
+            </form>
+        </li>
+        <li th:if="${shoppingCart.user.getRole().toString()} == 'ADMIN'">
+            <form th:action="@{/promotion/get/all}" method="get">
+                <button class="nav" type="submit">Promotii</button>
+            </form>
+        </li>
+        <li>
+            <form th:action="@{/userProfile}" method="get">
+                <button class="nav" type="submit">Profil</button>
+            </form>
+        </li>
+        <li>
+            <form th:action="@{/logout}" method="get">
+                <button class="nav" type="submit">Log Out</button>
+            </form>
+        </li>
+    </ul>
+</div>
+
+<div class="container" th:if="${shoppingCart}">
+    <h1 class="floral-header">Cos de cumparaturi</h1>
+    <h2>User: <span th:text="${shoppingCart.user.name}"></span></h2>
+    <table>
+        <thead>
+        <tr>
+            <th>Nume produs</th>
+            <th>Pret</th>
+            <th>Cantitate</th>
+            <th>Total</th>
+            <th>Elimina</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="item : ${shoppingCart.orderItems}">
+            <td th:text="${item.product.name}"></td>
+            <td th:text="${item.product.price}"></td>
+            <td>
+                <span th:text="${item.quantity}"></span>
+                <form th:action="@{/orderItem/updateQuantityOfOrderItem/{itemId}(itemId=${item.id})}" method="post">
+                    <input type="hidden" name="action" th:value="'increase'"/>
+                    <input type="hidden" name="cartId" th:value="${shoppingCart.getId()}"/>
+                    <button class="plusMinus" type="submit">+</button>
+                </form>
+
+                <form th:action="@{/orderItem/updateQuantityOfOrderItem/{itemId}(itemId=${item.id})}" method="post">
+                    <input type="hidden" name="action" th:value="'decrease'"/>
+                    <input type="hidden" name="cartId" th:value="${shoppingCart.getId()}"/>
+                    <button class="plusMinus" type="submit">-</button>
+                </form>
+            </td>
+            <td th:text="${item.product.price * item.quantity}"></td>
+            <td>
+                <form th:action="@{/delete/orderItemFromCart/{userId}(userId=${shoppingCart.user.getId()})}"
+                      method="post">
+                    <input type="hidden" name="orderItemId" th:value="${item.id}"/>
+                    <button type="submit">Sterge</button>
+                </form>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+    <div>Total Price: <span th:text="${shoppingCart.totalPrice}"><br></span></div>
+    <form>
+        <input type="hidden" name="status" th:value="PROCESSING"/>
+        <input type="hidden" name="address" th:value="${shoppingCart.user.address}"/>
+        <label for="pay">Selectați tipul de plată:</label>
+        <select id="pay" name="pay">
+            <option value="CASH_ON_DELIVERY">Cash on delivery</option>
+            <option value="CARD">Card</option>
+        </select>
+        <input class="total" type="hidden" name="totalPrice" th:value="${shoppingCart.totalPrice}"/>
+        <input type="hidden" name="id_user" th:value="${shoppingCart.user.id}"/>
+        <input type="hidden" th:each="item : ${shoppingCart.orderItems}"
+               name="id_orderItems" th:value="${item.id}"/>
+
+        <button class="submit" type="submit" onclick="sendOrder()">Plaseaza comanda</button>
+    </form>
+
+</div>
+<div th:unless="${shoppingCart}">
+    <p>Cosul este gol.</p>
+</div>
+</body>
+<script>
+    function sendOrder() {
+        var status = "PROCESSING";
+        var address = document.querySelector("[name='address']").value;
+        var pay = document.getElementById("pay").value;
+        var totalPrice = document.querySelector("[name='totalPrice']").value;
+        var id_user = document.querySelector("[name='id_user']").value;
+        var id_orderItems = Array.from(document.querySelectorAll("[name='id_orderItems']"))
+            .map(function (element) {
+                return element.value;
+            });
+        const orderData = {
+            status: status,
+            address: address,
+            pay: pay,
+            totalPrice: totalPrice,
+            id_user: id_user,
+            id_orderItems: id_orderItems
+        };
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", "/order/add", false);
+        xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState === XMLHttpRequest.DONE) {
+                if (xhr.status === 200) {
+                    alert('Comanda a fost plasata cu succes!');
+                    window.location.href = xhr.responseURL;
+                    document.body.innerHTML = xhr.response;
+                } else {
+                    alert('Ceva nu a mers bine la plasarea comenzii!');
+                }
+            }
+        };
+        xhr.send(JSON.stringify(orderData));
+    }
+</script>
+</html>
+ 

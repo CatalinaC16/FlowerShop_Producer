@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista plati</title>
+    <link th:href="@{/styles/cssandjs/listOfProducts.css}" rel="stylesheet"/>
+</head>
+<div class="navbar">
+    <ul>
+        <li>
+            <form th:action="@{/product/listOfProducts}" method="get">
+                <button class="nav" type="submit">Produse</button>
+            </form>
+        </li>
+        <li>
+            <form th:action="@{/review/listOfReviews}" method="get">
+                <button class="nav" type="submit">Reviews</button>
+            </form>
+        </li>
+        <li>
+            <form th:action="@{/cart/getByUser}" method="get">
+                <button class="nav" type="submit">Cos</button>
+            </form>
+        </li>
+        <li>
+            <form th:action="@{/order/getByUser/all/{userId}(userId=${user.getId()})}" method="get">
+                <button class="nav" type="submit">Comenzi</button>
+            </form>
+        </li>
+        <li th:if="${user.getRole().toString()} == 'ADMIN'">
+            <form th:action="@{/card/listOfPayments}" method="get">
+                <button class="nav" type="submit">Plati</button>
+            </form>
+        </li>
+        <li th:if="${user.getRole().toString()} == 'ADMIN'">
+            <form th:action="@{/listOfUsers}" method="get">
+                <button class="nav" type="submit">Useri</button>
+            </form>
+        </li>
+        <li th:if="${user.getRole().toString()} == 'ADMIN'">
+            <form th:action="@{/promotion/get/all}" method="get">
+                <button class="nav" type="submit">Promotii</button>
+            </form>
+        </li>
+        <li>
+            <form th:action="@{/userProfile}" method="get">
+                <button class="nav" type="submit">Profil</button>
+            </form>
+        </li>
+        <li>
+            <form th:action="@{/logout}" method="get">
+                <button class="nav" type="submit">Log Out</button>
+            </form>
+        </li>
+    </ul>
+</div>
+<body class="floral-background">
+<div class="container floral-border">
+    <h1 class="floral-header" style="margin-left: 3rem;">Lista plati</h1>
+    <table class="table table-bordered">
+        <thead class="thead-light">
+        <tr>
+            <th scope="col">ID plata</th>
+            <th scope="col">Numar card</th>
+            <th scope="col">CVV card</th>
+            <th scope="col">Pret total platit</th>
+            <th scope="col">Data platii</th>
+            <th scope="col">Elimina plata</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="payment : ${payments}">
+            <td th:text="${payment.getId()}">ID</td>
+            <td th:text="${payment.getNumarCard()}">Numar card</td>
+            <td th:text="${payment.getCvv()}">CVV</td>
+            <td th:text="${payment.getTotalPrice()}">Pret total</td>
+            <td th:text="${payment.getOrderDate()}">Data platii</td>
+            <td>
+                <form th:id="'deletePayment_' + ${payment.getId()}"
+                      th:action="@{/card/delete/{paymentId}(paymentId=${payment.getId()})}" method="post">
+                    <button type="submit">Sterge</button>
+                </form>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+<script>
+    document.querySelectorAll('[id^="deletePayment_"]').forEach(function (form) {
+        form.addEventListener('submit', function (event) {
+            event.preventDefault();
+
+            var formData = new FormData(this);
+            fetch(this.action, {
+                method: 'POST',
+                body: formData
+            })
+                .then(response => {
+                    if (response.redirected) {
+                        var notificationExists = document.querySelector('.notification');
+                        if (!notificationExists) {
+                            var notification = document.createElement('div');
+                            if (response.url.includes('/card/listOfPayments')) {
+                                setTimeout(function () {
+                                    window.location.href = response.url
+                                }, 1000);
+                                notification.className = 'notification';
+                                notification.textContent = 'Plata a fost stearsa!';
+                                document.body.appendChild(notification);
+                            } else {
+                                notification.className = 'notificationError';
+                                notification.textContent = 'Nu s-a putut sterge plata!';
+                                document.body.appendChild(notification);
+                                setTimeout(function () {
+                                    window.location.reload();
+                                }, 1000);
+                            }
+                        }
+                    }
+                })
+        });
+    });
+</script>
+</body>
+</html>

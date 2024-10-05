@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modifica comanda</title>
+    <link th:href="@{/styles/cssandjs/create.css}" rel="stylesheet"/>
+</head>
+<body>
+<div class="container">
+    <h2>Modifica detalii comanda</h2>
+    <form id="orderForm" th:action="@{/order/update/__${order.id}__}" th:object="${order}" method="POST">
+        <div class="form-group">
+            <label for="status">Status:</label>
+            <select id="status" name="status" th:field="*{status}">
+                <option th:each="status : ${T(com.example.flowerShop.utils.order.OrderStatus).values()}"
+                        th:value="${status.name()}"
+                        th:text="${status}">
+                </option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="address">Adresa:</label>
+            <input type="text" id="address" name="address" th:field="*{address}" required minlength="1">
+        </div>
+
+        <div class="form-group">
+            <label for="pay">Payment Method:</label>
+            <select id="pay" name="pay" th:field="*{pay}">
+                <option th:each="paymentType : ${T(com.example.flowerShop.utils.order.PaymentType).values()}"
+                        th:value="${paymentType}"
+                        th:text="${paymentType}">
+                </option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="totalPrice">Pret:</label>
+            <input type="number" id="totalPrice" name="totalPrice" th:field="*{totalPrice}" required>
+        </div>
+
+        <button type="submit">Modifica</button>
+    </form>
+</div>
+<script>
+    document.getElementById('orderForm').addEventListener('submit', function (event) {
+        event.preventDefault();
+        var totalPrice = parseInt(document.getElementById('totalPrice').value);
+        if (isNaN(totalPrice) || totalPrice <= 1) {
+            alert("Pretul trebuie sa fie un numar mai mare de 1.");
+            return;
+        }
+
+        var formData = new FormData(this);
+        fetch(this.action, {
+            method: 'POST',
+            body: formData
+        })
+            .then(response => {
+                if (response.redirected) {
+                    var notification = document.createElement('div');
+                    if (response.url.includes('/order/getByUser/all/')) {
+                        setTimeout(function () {
+                            document.getElementById('orderForm').submit();
+                            window.location.href = response.url
+                        }, 1000);
+                        notification.className = 'notification';
+                        notification.textContent = 'Comanda a fost modificata!';
+                        document.body.appendChild(notification);
+                    } else {
+                        notification.className = 'notificationError';
+                        notification.textContent = 'Nu s-a modificat comanda!';
+                        document.body.appendChild(notification);
+                        setTimeout(function () {
+                            window.location.reload();
+                        }, 1000);
+                    }
+                }
+            })
+    });
+</script>
+</body>
+</html>

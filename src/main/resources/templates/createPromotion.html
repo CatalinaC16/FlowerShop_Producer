@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Promotion</title>
+    <link th:href="@{/styles/cssandjs/create.css}" rel="stylesheet"/>
+</head>
+<body>
+<div class="container">
+    <h2>Create Promotion</h2>
+    <form id="promotionForm">
+        <div class="form-group">
+            <label for="name">Promotion Name:</label>
+            <input type="text" id="name" name="name" pattern="[a-zA-Z0-9\s\'\-_]+"
+                   title="Introdu un cuvant in numele promotiei" required>
+        </div>
+
+        <div class="form-group">
+            <label for="discountPercentage">Discount Percentage:</label>
+            <input type="number" id="discountPercentage" name="discountPercentage" min="1" max="100"
+                   title="Discountul trebuie sa fie mai mare ca 1" required>
+        </div>
+
+        <div class="product-container" th:each="product : ${products}">
+            <div class="product">
+                <div>
+                    <input type="checkbox" class="product-checkbox" id="product-${product.getId().toString()}"
+                           name="products" th:value="${product.id}">
+                    <label th:for="'product-' + ${product.id}">Select</label>
+                </div>
+                <div>ID: <span th:text="${product.id}">ID</span></div>
+                <div>Nume: <span th:text="${product.name}">Nume</span></div>
+                <div>Pret: <span th:text="${product.price}">Pret</span></div>
+                <div>Stoc: <span th:text="${product.stock}">Stoc</span></div>
+                <div>Categorie: <span th:text="${product.category}">Categorie</span></div>
+            </div>
+        </div>
+
+        <button type="button" id="submitBtn" disabled onclick="submitPromotion()">Create Promotion</button>
+    </form>
+</div>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const checkboxList = document.querySelectorAll('.product-checkbox');
+        const submitButton = document.getElementById('submitBtn');
+
+        checkboxList.forEach(function (checkbox) {
+            checkbox.addEventListener('change', function () {
+                let atLeastOneSelected = false;
+                checkboxList.forEach(function (checkbox) {
+                    if (checkbox.checked) {
+                        atLeastOneSelected = true;
+                    }
+                });
+                submitButton.disabled = !atLeastOneSelected;
+            });
+        });
+    });
+
+    function submitPromotion() {
+        var name = document.getElementById('name').value;
+        var discountPercentage = document.getElementById('discountPercentage').value;
+        var selectedProducts = Array.from(document.querySelectorAll('.product-checkbox:checked')).map(checkbox => checkbox.value);
+
+        if (name === "" || !/^\S+$/.test(name)) {
+            alert("Introdu un cuvant in numele promotiei.");
+            return;
+        }
+
+        if (discountPercentage < 1) {
+            alert("Discountul trebuie sa fie mai mare sau egal cu 1.");
+            return;
+        }
+
+        if (selectedProducts.length === 0) {
+            alert("Selecteaza cel putin un produs.");
+            return;
+        }
+        var promotionData = {
+            name: name,
+            discountPercentage: discountPercentage,
+            id_products: selectedProducts
+        };
+
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", "/promotion/add", false);
+        xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState === XMLHttpRequest.DONE) {
+                var notification = document.createElement('div');
+                notification.className = 'notification';
+                if (xhr.status === 200) {
+                    notification.textContent = 'Promotia a fost creata!';
+                } else {
+                    notification.textContent = 'Nu s-a creat promotia!';
+                }
+                document.body.appendChild(notification);
+
+                setTimeout(function () {
+                    window.location.href = "/promotion/get/all";
+                }, 1500);
+            }
+        };
+        xhr.send(JSON.stringify(promotionData));
+    }
+
+    document.getElementById('discountPercentage').addEventListener('input', function () {
+        var input = this;
+        var value = parseFloat(input.value);
+        var min = parseFloat(input.min);
+        var max = parseFloat(input.max);
+
+        if (value < min) {
+            input.value = min;
+        } else if (value > max) {
+            input.value = max;
+        }
+    });
+</script>
+</body>
+</html>
